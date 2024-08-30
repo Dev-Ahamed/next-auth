@@ -10,8 +10,18 @@ export async function POST(req: Request) {
   const data = await req.json();
 
   const validatedFields = NewPasswordSchema.safeParse(data.values);
+
+  if (!validatedFields.success) {
+    return NextResponse.json({ error: "Invalid input data!" });
+  }
+
   const password = validatedFields.data?.password;
-  const token = await data.token;
+
+  if (!password) {
+    return NextResponse.json({ error: "Password is required!" });
+  }
+
+  const token = data.token;
 
   if (!token) {
     return NextResponse.json({ error: "Missing token!" });
@@ -46,42 +56,8 @@ export async function POST(req: Request) {
     await db.passwordResetToken.delete({
       where: { id: existingToken.id },
     });
-  } catch (error) {}
+  } catch (error) {
+    return NextResponse.json({ error: "Something went wrong!" });
+  }
   return NextResponse.json({ success: "Password updated!" });
-
-  //   try {
-  //     const existingToken = await getVerificationTokenByToken(token);
-
-  //     if (!existingToken) {
-  //       return NextResponse.json({ error: "Token does not exist!" });
-  //     }
-
-  //     const hasExpired = new Date(existingToken.expires) < new Date();
-
-  //     if (hasExpired) {
-  //       return NextResponse.json({ error: "Token has expired!" });
-  //     }
-
-  //     const existingUser = await getUserByEmail(existingToken.email);
-
-  //     if (!existingUser) {
-  //       return NextResponse.json({ error: "User does not exist!" });
-  //     }
-
-  //     const updatedUser = await db.user.update({
-  //       where: { id: existingUser.id },
-  //       data: {
-  //         emailVerified: new Date(),
-  //         email: existingToken.email,
-  //       },
-  //     });
-
-  //     const deletedVerificationtoken = await db.verificationToken.delete({
-  //       where: { id: existingToken.id },
-  //     });
-
-  //     return NextResponse.json({ success: "Email verified" });
-  //   } catch (error) {
-  //     return NextResponse.json({ error: "Something went wrong" });
-  //   }
 }

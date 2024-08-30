@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
   const user = await currentUser();
 
-  if (!user) {
+  if (!user || !user.id) {
     return NextResponse.json({ error: "Unauthrized" });
   }
 
